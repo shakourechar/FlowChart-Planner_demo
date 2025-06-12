@@ -750,9 +750,9 @@
     </h1>
 
     <nav>
-      <!-- DEMO: SAVE/UPLOAD REPLACED WITH CTA -->
-      <button class="demo-cta-btn" onclick="alert('Sign up for a free account to save and load your own flowcharts!')">
-          Sign Up to Save
+      <!-- FIX: Changed button to export the current data state -->
+      <button id="exportDemoBtn" class="demo-cta-btn" data-tooltip-text="Export your work from the demo. Sign up to save it to the cloud!">
+          <i class="fas fa-download" style="margin-right: 8px;"></i> Export Demo File
       </button>
       
       <!-- Regular buttons for demo functionality -->
@@ -1057,7 +1057,50 @@
     };
     
     // --- The rest of the application logic is identical to the main app ---
-    // Note: saveToFile and loadFromFile functions are removed as they are not used in the demo.
+    
+    // FIX: Re-added a save function specifically for the demo export.
+    function exportDemoData() {
+      try {
+        const expD = {
+          flowchartName: data.flowchartName,
+          projectDescription: data.projectDescription,
+          nodes: data.nodes.map((n) => ({
+            id: n.id,
+            name: n.name,
+            status: n.status,
+            responsible: n.responsible,
+            deadline: n.deadline,
+            priority: n.priority,
+            actionDescription: n.actionDescription,
+            color: n.color,
+            x: n.x,
+            y: n.y,
+            fx: n.fx,
+            fy: n.fy,
+          })),
+          links: data.links.map(l => ({
+            source: l.source.id || l.source,
+            target: l.target.id || l.target
+          })),
+          colorLegend: data.colorLegend
+        };
+        const dataStr = JSON.stringify(expD, null, 2);
+        const blob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'flowchart-demo-work.json';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }, 100);
+      } catch (e) {
+        console.error('Export demo data error:', e);
+        alert('Error exporting your demo file.');
+      }
+    }
 
     // --- Theme Toggle Script ---
     try {
@@ -1419,6 +1462,9 @@
                 swatch.style.backgroundColor = hexToRgba(color, nodeFillOpacity);
             }
         });
+        
+        // FIX: Add listener for new export button
+        if (g('exportDemoBtn')) g('exportDemoBtn').onclick = exportDemoData;
 
         if (g('aiAssistantBtn')) g('aiAssistantBtn').onclick = openAIAssistant;
         if (g('nodeSizeIncreaseBtn')) g('nodeSizeIncreaseBtn').onclick = () => {
@@ -1441,7 +1487,6 @@
           })
         );
         
-        // FIX: Add event listeners for the re-added User Guide button
         const userGuideBtn = g('userGuideBtn');
         const userGuideModal = g('userGuideModal');
         const closeUserGuideModalBtn = g('closeUserGuideModal');
