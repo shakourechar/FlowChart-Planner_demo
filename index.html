@@ -1,0 +1,1856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FlowChart Manager - Demo Playground</title>
+
+  <link
+    rel="icon"
+    type="image/png"
+    href="https://static.wixstatic.com/media/c3283f_a3e1ec47496f42f7be617a2cd7a7bc9e~mv2.png"
+  />
+
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css"
+  />
+
+  <style>
+    :root {
+      --bg-primary: linear-gradient(135deg, #939ef5 0%, #9e76d6 100%);
+      --header-fixed-bg: #20232a;
+      --header-glass-border: rgba(255, 255, 255, 0.1);
+      --text-on-header: white;
+      --button-bg: rgba(255, 255, 255, 0.25);
+      --button-text: var(--text-on-header);
+      --button-hover-bg: rgba(255, 255, 255, 0.4);
+      --backdrop-blur: 10px;
+      --input-bg: rgba(255, 255, 255, 0.2);
+      --input-border: rgba(200, 200, 220, 0.4);
+      --input-text: #1c1c1e;
+      --glass-border: rgba(200, 200, 220, 0.4);
+      --modal-bg: rgba(255, 255, 255, 0.3);
+      --modal-text: #1c1c1e;
+      --close-button-color: rgba(0, 0, 0, 0.5);
+      --close-button-hover-color: #000;
+      --flowchart-container-bg: rgba(255, 255, 255, 0.15);
+      --flowchart-container-border: rgba(200, 200, 220, 0.3);
+      --node-text-fill: var(--text-on-glass-light-bg, #1c1c1e);
+      --node-fill-opacity: 0.55;
+      --task-count-rect-bg: rgba(44, 62, 80, 0.75);
+      --task-count-text-fill: white;
+      --task-count-border: rgba(255, 255, 255, 0.2);
+      --modal-strong-shadow: 0 15px 45px rgba(0, 0, 0, 0.15);
+      --link-color: #555; /* light-mode connector color */
+      --link-selected-color: #e74c3c;
+    }
+
+    body.dark-mode {
+      --bg-primary: linear-gradient(135deg, #101020 0%, #0c1428 50%, #08203f 100%);
+      --text-on-header: #e0e0e0;
+      --button-bg: rgba(255, 255, 255, 0.12);
+      --button-text: #e0e0e0;
+      --button-hover-bg: rgba(255, 255, 255, 0.22);
+      --input-bg: rgba(255, 255, 255, 0.1);
+      --input-border: rgba(255, 255, 255, 0.2);
+      --input-text: #e0e0e0;
+      --glass-border: rgba(255, 255, 255, 0.15);
+      --modal-bg: rgba(25, 30, 45, 0.5);
+      --modal-text: #e0e0e0;
+      --flowchart-container-bg: rgba(10, 10, 20, 0.1);
+      --flowchart-container-border: rgba(255, 255, 255, 0.1);
+      --modal-strong-shadow: 0 15px 45px rgba(0, 0, 0, 0.4);
+      --link-color: #aaa; /* dark-mode connector color */
+      --link-selected-color: #ff5252;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-primary);
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      transition: background 0.5s ease;
+      position: relative;
+      overflow-x: hidden;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: var(--bg-primary);
+      z-index: -1;
+      transition: background 0.5s ease;
+    }
+
+    /* ─── HEADER & NAVIGATION ───────────────────────────────────────────────────── */
+    header {
+      background: var(--header-fixed-bg);
+      backdrop-filter: blur(var(--backdrop-blur));
+      -webkit-backdrop-filter: blur(var(--backdrop-blur));
+      border-bottom: 1px solid var(--header-glass-border);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      color: var(--text-on-header);
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      position: sticky;
+      top: 0;
+      z-index: 999;
+    }
+
+    header h1 {
+      display: flex;
+      align-items: center;
+      margin: 0;
+      font-size: 1.75rem;
+      font-weight: 600;
+      color: var(--text-on-header);
+    }
+
+    #headerLogo {
+      width: 32px;
+      height: 32px;
+      margin-right: 0.75rem;
+    }
+
+    header h1 input#flowchartNameInput {
+      margin-left: 1rem;
+      font-size: 0.9rem;
+      padding: 0.5rem 1rem;
+      border: 1px solid var(--input-border);
+      border-radius: 8px;
+      background: var(--input-bg);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      color: var(--input-text);
+      transition: all 0.3s ease;
+      font-weight: 400;
+    }
+    header h1 input#flowchartNameInput:focus {
+      outline: none;
+      border-color: var(--glass-border);
+      box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    nav button,
+    #themeToggleBtn, .demo-cta-btn {
+      background: var(--button-bg);
+      backdrop-filter: blur(var(--backdrop-blur));
+      -webkit-backdrop-filter: blur(var(--backdrop-blur));
+      border: 1px solid var(--header-glass-border);
+      color: var(--button-text);
+      padding: 0.5rem;
+      height: 2.5rem;
+      border-radius: 8px;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+     .demo-cta-btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+        font-weight: 500;
+        background: #5865f2;
+     }
+
+    nav button::before,
+    #themeToggleBtn::before,
+     .demo-cta-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s ease;
+    }
+    nav button:hover::before,
+    #themeToggleBtn:hover::before,
+    .demo-cta-btn:hover::before {
+      left: 100%;
+    }
+    nav button:hover,
+    #themeToggleBtn:hover,
+    .demo-cta-btn:hover {
+      background: var(--button-hover-bg);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .demo-cta-btn:hover {
+        background: #6975ff;
+    }
+
+    nav button:active,
+    #themeToggleBtn:active,
+    nav button.active,
+    .demo-cta-btn:active {
+      transform: translateY(0);
+      background: var(--button-hover-bg);
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    #fileNameDisplay {
+      margin-left: 1rem;
+      font-size: 0.9rem;
+      color: var(--text-on-header);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 120px;
+    }
+
+    /* START: CSS FOR TOOLTIP */
+    #tooltip {
+      position: fixed;
+      background-color: var(--header-fixed-bg);
+      color: var(--text-on-header);
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      z-index: 10001; /* Higher than modals */
+      pointer-events: none; /* Prevents tooltip from interfering with mouse events */
+      visibility: hidden;
+      opacity: 0;
+      white-space: nowrap;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+      border: 1px solid var(--header-glass-border);
+      transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+      transform: translateX(-50%) translateY(10px); /* Start below and centered */
+    }
+
+    #tooltip.visible {
+      visibility: visible;
+      opacity: 1;
+      transform: translateX(-50%) translateY(0); /* Animate to final position */
+    }
+    /* END: CSS FOR TOOLTIP */
+
+    @media (max-width: 768px) {
+      nav {
+        gap: 0.3rem;
+      }
+      nav button,
+      #themeToggleBtn, .demo-cta-btn {
+        height: 2.2rem;
+        font-size: 1rem;
+      }
+    }
+    @media (max-width: 480px) {
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+      }
+      header h1 {
+        font-size: 1.5rem;
+      }
+      nav {
+        width: 100%;
+        gap: 0.25rem;
+      }
+      nav button,
+      #themeToggleBtn, .demo-cta-btn {
+        height: 2rem;
+        font-size: 0.9rem;
+      }
+      #fileNameDisplay {
+        display: none;
+      }
+    }
+    
+    /* START: NEW FLOATING LEGEND DISPLAY */
+    #color-legend-display {
+        display: none; /* Hidden by default */
+        position: sticky;
+        top: 80px; /* Position right under the header */
+        width: calc(100% - 2rem);
+        margin: 0 auto 1rem auto;
+        padding: 0.5rem 1rem;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid var(--header-glass-border);
+        border-radius: 12px;
+        z-index: 998;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    #color-legend-display.visible {
+        display: flex;
+    }
+    .legend-display-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.85rem;
+        color: var(--text-on-header);
+    }
+    .legend-display-color {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    /* END: NEW FLOATING LEGEND DISPLAY */
+
+    /* ─── FLOWCHART CONTAINER & BANNER ───────────────────────────────────────────── */
+    #flowchartContainer {
+      width: calc(100% - 2rem);
+      flex-grow: 1;
+      border: 1px solid var(--flowchart-container-border);
+      background: var(--flowchart-container-bg);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      overflow: hidden;
+      position: relative;
+      margin: 1rem;
+      border-radius: 20px;
+      box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.1);
+      transition: background 0.3s ease, border-color 0.3s ease;
+    }
+    #flowchart {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+    
+    line.link {
+        cursor: pointer;
+        transition: stroke 0.3s ease, stroke-width 0.3s ease;
+    }
+    line.link.selected {
+        stroke: var(--link-selected-color) !important;
+        stroke-width: 4px;
+        stroke-dasharray: 5, 5;
+    }
+
+    #banner-container {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      width: 35%;
+      max-width: 420px;
+      aspect-ratio: 1500 / 625;
+      border-radius: 12px;
+      overflow: hidden;
+      background: transparent;
+      z-index: 50;
+    }
+    #banner-container iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: transparent;
+    }
+
+    /* ─── MODALS & GENERIC STYLING ───────────────────────────────────────────────── */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      padding-top: 50px;
+      overflow-y: auto;
+    }
+    .modal-content {
+      background: var(--modal-bg);
+      backdrop-filter: blur(var(--backdrop-blur));
+      -webkit-backdrop-filter: blur(var(--backdrop-blur));
+      border: 1px solid var(--glass-border);
+      color: var(--modal-text);
+      margin: 20px auto;
+      padding: 2rem;
+      width: 90%;
+      max-width: 750px;
+      overflow-y: auto;
+      max-height: calc(100vh - 100px);
+      border-radius: 20px;
+      position: relative;
+      box-shadow: var(--modal-strong-shadow);
+      transition: background 0.3s ease, border-color 0.3s ease;
+    }
+    #deleteLinkModal .modal-content, #colorLegendModal .modal-content {
+      max-width: 500px;
+    }
+    
+    /* START: NEW COLOR LEGEND MODAL STYLES */
+    #color-legend-entries {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    .legend-entry {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    .legend-color-swatch {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        border: 2px solid var(--glass-border);
+        flex-shrink: 0;
+    }
+    .legend-entry input {
+        flex-grow: 1;
+    }
+    /* END: NEW COLOR LEGEND MODAL STYLES */
+    
+    .close-button {
+      position: absolute;
+      right: 15px;
+      top: 15px;
+      font-size: 24px;
+      cursor: pointer;
+      color: var(--close-button-color);
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      transition: all 0.3s ease;
+      z-index: 10;
+    }
+    .close-button:hover {
+      color: var(--close-button-hover-color);
+      background: rgba(255, 255, 255, 0.2);
+      transform: scale(1.1);
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    input,
+    select,
+    textarea {
+      padding: 12px 16px;
+      border: 1px solid var(--input-border);
+      border-radius: 12px;
+      font-size: 1em;
+      background: var(--input-bg);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      color: var(--input-text);
+      font-family: 'Inter', 'Segoe UI', sans-serif;
+      transition: all 0.3s ease;
+    }
+    input:focus,
+    select:focus,
+    textarea:focus {
+      outline: none;
+      border-color: var(--glass-border);
+      box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+      transform: translateY(-1px);
+    }
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+    #taskName {
+      width: 100%;
+    }
+    
+    .modal-btn {
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: var(--modal-text);
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-size: 1em;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+    }
+    .modal-btn:hover {
+        background: rgba(255, 255, 255, 0.25);
+        border-color: rgba(255, 255, 255, 0.3);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    }
+    .modal-btn:active {
+        transform: translateY(0);
+        box-shadow: none;
+    }
+    .modal-btn.danger {
+        background-color: rgba(231, 76, 60, 0.5);
+    }
+    .modal-btn.danger:hover {
+        background-color: rgba(231, 76, 60, 0.7);
+    }
+
+    .flowchart-node-html-wrapper {
+      overflow: visible;
+    }
+
+    .flowchart-node-html {
+      backdrop-filter: blur(var(--backdrop-blur));
+      -webkit-backdrop-filter: blur(var(--backdrop-blur));
+      border: 1px solid var(--glass-border);
+      box-shadow: var(--modal-strong-shadow);
+      border-radius: 18px;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      padding-top: 40px;
+      padding-bottom: 24px;
+      box-sizing: border-box;
+      color: var(--node-text-fill);
+      text-align: center;
+      cursor: move;
+      position: relative;
+      overflow: hidden;
+      transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .flowchart-node-html .priority-indicator {
+      position: absolute;
+      bottom: 12px;
+      right: 12px;
+      display: flex;
+      gap: 2px;
+      font-size: 0.8em;
+      line-height: 1;
+    }
+
+    .node-name-html {
+      font-weight: 500;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+      word-break: break-word;
+      max-width: 100%;
+      width: 100%;
+      overflow: visible;
+    }
+    body.dark-mode .node-name-html {
+      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+    }
+
+    .task-count-pill-html {
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--task-count-rect-bg);
+      color: var(--task-count-text-fill);
+      padding: 5px 12px;
+      border-radius: 14px;
+      font-weight: 600;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      border: 1px solid var(--task-count-border);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      white-space: nowrap;
+      z-index: 5;
+      transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    }
+
+    #userGuideModal .modal-content ul {
+      list-style-type: disc;
+      padding-left: 20px;
+    }
+    #userGuideModal .modal-content h2 {
+      font-size: 1.5em;
+      margin-bottom: 1em;
+    }
+    #userGuideModal .modal-content h3 {
+      margin-top: 1.5em;
+      margin-bottom: 0.5em;
+      font-size: 1.15em;
+      color: var(--modal-text);
+    }
+    #userGuideModal .modal-content li {
+      margin-bottom: 0.7em;
+      line-height: 1.6;
+    }
+    #userGuideModal .modal-content li strong {
+      font-weight: 600;
+      color: var(--modal-text);
+    }
+    #userGuideModal .modal-content p {
+      margin-bottom: 1em;
+      line-height: 1.6;
+    }
+    
+    #shareModal .modal-content {
+        max-width: 900px;
+    }
+    #shareModal iframe {
+        width: 100%;
+        height: 70vh;
+        border: none;
+        border-radius: 12px;
+    }
+
+    .action-buttons {
+      display: flex;
+      justify-content: flex-end;
+      gap: 15px;
+      margin-top: 20px;
+    }
+    .color-panel {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
+      margin-bottom: 12px;
+    }
+    .color-swatch {
+      width: 32px;
+      height: 32px;
+      border: 2px solid var(--glass-border);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+    .color-swatch:hover {
+      transform: scale(1.15) translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    }
+    .selected-swatch {
+      outline: 3px solid var(--selected-swatch-outline, #1c1c1e);
+      outline-offset: 3px;
+      transform: scale(1.1);
+    }
+
+    .selectedTaskRow {
+      border: 2px solid var(--selected-row-border, rgba(52, 152, 219, 0.8));
+      background: var(--selected-row-bg, rgba(200, 210, 225, 0.3));
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius: 8px;
+    }
+
+    #taskTable {
+      width: 100%;
+      margin-bottom: 15px;
+      border-collapse: collapse;
+    }
+    #taskTable th {
+      text-align: left;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--table-header-separator, rgba(0, 0, 0, 0.2));
+      color: var(--th-text-color, #1c1c1e);
+      font-weight: 600;
+    }
+    #taskTable td {
+      padding-top: 8px;
+    }
+
+    .task-detail-textarea {
+      width: 100%;
+      resize: vertical;
+      border: 1px solid var(--input-border);
+      padding: 8px 12px;
+      background: var(--input-bg);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      color: var(--input-text);
+      border-radius: 8px;
+      font-size: 0.9em;
+      min-height: 3em;
+      transition: all 0.3s ease;
+    }
+    .task-detail-textarea:focus {
+      border-color: var(--glass-border);
+      box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+    }
+
+    @media (max-width: 768px) {
+      #banner-container {
+        width: 49%;
+        max-width: 294px;
+        aspect-ratio: 1500 / 625;
+      }
+      #color-legend-display {
+          top: 130px; /* Adjust for taller header on mobile */
+      }
+    }
+    @media (max-width: 480px) {
+      #banner-container {
+        width: 56%;
+        max-width: 252px;
+        aspect-ratio: 1500 / 625;
+      }
+      #color-legend-display {
+          top: 170px; /* Adjust for even taller header on small mobile */
+      }
+    }
+  </style>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+</head>
+
+<body>
+  <header>
+    <h1>
+      <img
+        src="https://static.wixstatic.com/media/c3283f_a3e1ec47496f42f7be617a2cd7a7bc9e~mv2.png"
+        alt="Logo"
+        id="headerLogo"
+      />
+      FlowChart Manager
+      <input
+        type="text"
+        id="flowchartNameInput"
+        placeholder="Enter Flowchart Name…"
+        readonly
+      />
+    </h1>
+
+    <nav>
+      <!-- DEMO: SAVE/UPLOAD REPLACED WITH CTA -->
+      <button class="demo-cta-btn" onclick="alert('Sign up for a free account to save and load your own flowcharts!')">
+          Sign Up to Save
+      </button>
+      
+      <!-- Regular buttons for demo functionality -->
+      <!-- FIX: Removed title attribute from all buttons to prevent double tooltips -->
+      <button
+        id="nodeSizeIncreaseBtn"
+        data-tooltip-text="Increase Node Size"
+      >
+        <i class="fas fa-plus"></i>
+      </button>
+
+      <button
+        id="nodeSizeDecreaseBtn"
+        data-tooltip-text="Decrease Node Size"
+      >
+        <i class="fas fa-minus"></i>
+      </button>
+
+      <button
+        id="aiAssistantBtn"
+        data-tooltip-text="AI Assistant"
+      >
+        <i class="fas fa-lightbulb"></i>
+      </button>
+
+      <button
+        id="colorLegendBtn"
+        data-tooltip-text="Color Legend"
+      >
+          <i class="fas fa-palette"></i>
+      </button>
+
+      <button 
+        id="addConnectorBtn" 
+        data-tooltip-text="Add Connector"
+      >
+        <i class="fas fa-link"></i>
+      </button>
+      
+      <button
+        id="projectDescBtn"
+        style="display: none;"
+        data-tooltip-text="Project Description"
+      >
+        <i class="fas fa-info-circle"></i>
+      </button>
+      
+      <button
+        id="themeToggleBtn"
+        data-tooltip-text="Toggle Theme"
+      >
+        <i class="fas fa-moon"></i>
+      </button>
+    </nav>
+  </header>
+  
+  <div id="color-legend-display"></div>
+
+  <div id="flowchartContainer">
+    <div id="banner-container">
+      <iframe
+        src="https://transcendence.media/SmartWealth-Banner"
+        allowtransparency="true"
+        scrolling="no"
+        frameborder="0"
+      ></iframe>
+    </div>
+    <svg id="flowchart"></svg>
+  </div>
+
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <span class="close-button" id="closeModal">×</span>
+      <h2>Task Details</h2>
+      <form id="taskForm">
+        <label>
+          Task Name:
+          <textarea id="taskName" required></textarea>
+        </label>
+        <label>
+          Responsible:
+          <input type="text" id="responsible" required />
+        </label>
+        <label>
+          Status:
+          <select id="status">
+            <option value="Not Started">Not Started</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Completed">Completed</option>
+          </select>
+        </label>
+        <label>
+          Deadline:
+          <input type="date" id="deadline" />
+        </label>
+        <label>
+          Priority:
+          <select id="priority">
+            <option value="Low">Low</option>
+            <option value="Normal">Normal</option>
+            <option value="High">High</option>
+          </select>
+        </label>
+        <label>Action Description (Sub-tasks):</label>
+        <table id="taskTable">
+          <thead>
+            <tr>
+              <th style="width: 30px;">✓</th>
+              <th>Task</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <button type="button" id="addTaskRowBtn" class="modal-btn">Add Task</button>
+        <label>Node Color:</label>
+        <input type="hidden" id="nodeColor" />
+        <div class="color-panel">
+          <div
+            class="color-swatch"
+            style="background-color: rgba(231, 76, 60, 0.55);"
+            data-color="#e74c3c"
+          ></div>
+          <div
+            class="color-swatch"
+            style="background-color: rgba(241, 196, 15, 0.55);"
+            data-color="#f1c40f"
+          ></div>
+          <div
+            class="color-swatch"
+            style="background-color: rgba(46, 204, 113, 0.55);"
+            data-color="#2ecc71"
+          ></div>
+          <div
+            class="color-swatch"
+            style="background-color: rgba(52, 152, 219, 0.55);"
+            data-color="#3498db"
+          ></div>
+          <div
+            class="color-swatch"
+            style="background-color: rgba(155, 89, 182, 0.55);"
+            data-color="#9b59b6"
+          ></div>
+          <div
+            class="color-swatch"
+            style="background-color: rgba(52, 73, 94, 0.55);"
+            data-color="#34495e"
+          ></div>
+        </div>
+        <div class="action-buttons">
+          <button type="submit" class="modal-btn">Save Node</button>
+          <button type="button" class="modal-btn" id="addNodeBtn">
+            Add Child Node
+          </button>
+        </div>
+        <div style="text-align: center; margin-top: 20px;">
+          <button type="button" id="deleteNodeBtn" class="modal-btn danger">Delete Node</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="taskTextPopup" class="modal">
+    <div class="modal-content">
+      <span class="close-button" id="closeTaskPopup">×</span>
+      <p
+        id="taskFullText"
+        style="white-space: pre-wrap; max-height: 60vh; overflow-y: auto;"
+      ></p>
+      <button id="deleteTaskBtn" class="modal-btn danger">Delete Task</button>
+    </div>
+  </div>
+
+  <div id="projectDescModal" class="modal">
+    <div class="modal-content">
+      <span class="close-button" id="closeProjectDescModal">×</span>
+      <h2>Project Description</h2>
+      <p id="projectSummary"></p>
+      <p id="projectGeneratedDate"></p>
+    </div>
+  </div>
+  
+  <div id="deleteLinkModal" class="modal">
+      <div class="modal-content">
+          <span class="close-button" id="cancelDeleteLinkBtn">×</span>
+          <h2>Delete Connector</h2>
+          <p>Are you sure you want to delete this connection?</p>
+          <div class="action-buttons">
+              <button id="confirmDeleteLinkBtn" class="modal-btn danger">Delete</button>
+          </div>
+      </div>
+  </div>
+
+  <div id="colorLegendModal" class="modal">
+      <div class="modal-content">
+          <span class="close-button" id="closeColorLegendModal">×</span>
+          <h2>Edit Color Legend</h2>
+          <form id="colorLegendForm">
+              <p>Define what each color represents. These will be shown in a legend below the header.</p>
+              <div id="color-legend-entries">
+              </div>
+              <div class="action-buttons">
+                  <button type="submit" class="modal-btn">Save Legend</button>
+              </div>
+          </form>
+      </div>
+  </div>
+  
+  <div id="tooltip"></div>
+
+  <script>
+    // --- DEMO VERSION SCRIPT ---
+
+    // The hard-coded data for the demo from your tweaked JSON file.
+    let data = {
+      "flowchartName": "Project Phoenix: New App Launch (Demo)",
+      "projectDescription": {
+        "summary": "This is a demonstration of the FlowChart Manager. You can click on any node to edit its details, change colors, and add new tasks. Drag nodes to rearrange them and click the '🔗' button to connect them. To save your work, sign up for a free account!",
+        "generatedDate": "2025-06-12 04:03:00 PM EDT"
+      },
+      "nodes": [
+        {
+          "id": "node-1",
+          "name": "Market Research & Competitive Analysis",
+          "status": "Completed",
+          "responsible": "Product Team",
+          "deadline": "2025-01-30",
+          "priority": "High",
+          "actionDescription": "[{\"completed\":true,\"task\":\"Identify top 5 competitors\"},{\"completed\":true,\"task\":\"Survey 100 potential users\"}]",
+          "color": "#3498db",
+          "x": 300,
+          "y": 250,
+          "fx": 300,
+          "fy": 250
+        },
+        {
+          "id": "node-2",
+          "name": "Wireframing & Prototyping",
+          "status": "Completed",
+          "responsible": "UX/UI Team",
+          "deadline": "2025-02-28",
+          "priority": "High",
+          "actionDescription": "[{\"completed\":true,\"task\":\"Create low-fidelity wireframes\"},{\"completed\":true,\"task\":\"Build interactive prototype in Figma\"}]",
+          "color": "#9b59b6",
+          "x": 650,
+          "y": 250,
+          "fx": 650,
+          "fy": 250
+        },
+        {
+          "id": "node-3",
+          "name": "Core Feature Development (MVP)",
+          "status": "In Progress",
+          "responsible": "Engineering",
+          "deadline": "2025-04-15",
+          "priority": "Low",
+          "actionDescription": "[{\"completed\":true,\"task\":\"Set up database schema\"},{\"completed\":false,\"task\":\"Implement user authentication\"},{\"completed\":false,\"task\":\"Build core dashboard\"}]",
+          "color": "#f1c40f",
+          "x": 1000,
+          "y": 250,
+          "fx": 1000,
+          "fy": 250
+        },
+        {
+          "id": "node-4",
+          "name": "Quality Assurance & Testing",
+          "status": "Not Started",
+          "responsible": "QA Team",
+          "deadline": "2025-04-30",
+          "priority": "Normal",
+          "actionDescription": "[{\"completed\":false,\"task\":\"Write test cases for all features\"},{\"completed\":false,\"task\":\"Perform regression testing\"}]",
+          "color": "#f1c40f",
+          "x": 1000,
+          "y": 550,
+          "fx": 1000,
+          "fy": 550
+        },
+        {
+          "id": "node-5",
+          "name": "Marketing & Launch Campaign",
+          "status": "Not Started",
+          "responsible": "Marketing Team",
+          "deadline": "2025-05-15",
+          "priority": "Normal",
+          "actionDescription": "[]",
+          "color": "#2ecc71",
+          "x": 1345.4522705078125,
+          "y": -24.374910354614258,
+          "fx": 1345.4522705078125,
+          "fy": -24.374910354614258
+        },
+        {
+          "id": "node-1749759551533-3tbti",
+          "name": "Pre-Launch Compliance",
+          "status": "Not Started",
+          "responsible": "Team Lead",
+          "deadline": "",
+          "priority": "Normal",
+          "actionDescription": "[{\"completed\":false,\"task\":\"Ensure that all components have been reviewed.\"},{\"completed\":false,\"task\":\"Collect finalization approvals from each team member\"},{\"completed\":false,\"task\":\"Draft a final Compliance Report before Launch\"}]",
+          "color": "#e74c3c",
+          "x": 567.1802113593294,
+          "y": 586.0558613933672,
+          "fx": 567.1802113593294,
+          "fy": 586.0558613933672
+        },
+        {
+          "id": "node-1749759811382-ttmdx",
+          "name": "Review & Approve Launch Schedule",
+          "status": "Not Started",
+          "responsible": "Events Team",
+          "deadline": "",
+          "priority": "Normal",
+          "actionDescription": "[{\"completed\":false,\"task\":\"Finalize  Launch Stages (1 to 3 or 5)\"},{\"completed\":false,\"task\":\"Schedule Launch Stages with specific dates\"}]",
+          "color": "#e74c3c",
+          "x": 567.7759909216113,
+          "y": 905.7001441904256,
+          "fx": 567.7759909216113,
+          "fy": 905.7001441904256
+        }
+      ],
+      "links": [
+        { "source": "node-1", "target": "node-2" },
+        { "source": "node-2", "target": "node-3" },
+        { "source": "node-3", "target": "node-4" },
+        { "source": "node-3", "target": "node-5" },
+        { "source": "node-1749759551533-3tbti", "target": "node-1749759811382-ttmdx" }
+      ],
+      "colorLegend": {
+        "#3498db": "Phase 1: Planning & Research",
+        "#9b59b6": "Phase 2: Design & UX/UI",
+        "#f1c40f": "Phase 3: Development & QA",
+        "#2ecc71": "Phase 4: Launch",
+        "#e74c3c": "Team Lead Review & Approval"
+      }
+    };
+    
+    // --- The rest of the application logic is identical to the main app ---
+    // Note: saveToFile and loadFromFile functions are removed as they are not used in the demo.
+
+    // --- Theme Toggle Script ---
+    try {
+      const themeToggleBtn = document.getElementById('themeToggleBtn');
+      const currentDocumentBody = document.body;
+      const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+
+      function applyTheme(theme) {
+        currentDocumentBody.classList.toggle('dark-mode', theme === 'dark');
+      }
+
+      if (themeToggleBtn && currentDocumentBody && prefersDarkScheme) {
+        const savedTheme = localStorage.getItem('theme');
+        applyTheme(savedTheme ? savedTheme : (prefersDarkScheme.matches ? 'dark' : 'light'));
+
+        themeToggleBtn.addEventListener('click', () => {
+          const newTheme = currentDocumentBody.classList.contains('dark-mode') ? 'light' : 'dark';
+          applyTheme(newTheme);
+          localStorage.setItem('theme', newTheme);
+          const ico = themeToggleBtn.querySelector('i');
+          if (newTheme === 'dark') {
+            ico.className = 'fas fa-sun';
+          } else {
+            ico.className = 'fas fa-moon';
+          }
+        });
+
+        prefersDarkScheme.addEventListener('change', (e) => {
+          if (!localStorage.getItem('theme')) applyTheme(e.matches ? 'dark' : 'light');
+        });
+      } else {
+        console.error('Theme toggle elements missing.');
+      }
+    } catch (themeError) {
+      console.error('Theme script error:', themeError);
+    }
+
+    // --- Main Application Script ---
+    function openAIAssistant() {
+      const url =
+        'https://chatgpt.com/g/g-678c450b02988191b07d47c7a5bd9d4a-flow-chart-assistant';
+      const sW = window.screen.availWidth,
+        sH = window.screen.availHeight,
+        bS = Math.min(sW, sH);
+      const pW = Math.floor(bS * 0.45),
+        pH = Math.floor(bS * 0.55),
+        l = Math.floor((sW - pW) / 2),
+        t = Math.floor((sH - pH) / 2);
+      window.open(
+        url,
+        'FlowchartAIAssistant',
+        `width=${pW},height=${pH},left=${l},top=${t},resizable=yes,scrollbars=yes,status=no,location=no,menubar=no,toolbar=no`
+      );
+    }
+
+    let selectedNode = null,
+      selectedLink = null,
+      simulation,
+      svg,
+      nodeGroup,
+      linkGroup,
+      mainZoomGroup;
+    const BASE_NODE_DIMENSION = 160;
+    let currentNodeSizeFactor = 1.0;
+    const MIN_NODE_SIZE_FACTOR = 0.5,
+      MAX_NODE_SIZE_FACTOR = 1.5,
+      NODE_SIZE_STEP = 0.1;
+
+    let connectorMode = false;
+    let connectorStartNode = null;
+
+    function hexToRgba(hex, alpha = 1) {
+      if (!hex || typeof hex !== 'string') return `rgba(200,200,200,${alpha})`;
+      hex = hex.replace('#', '');
+      let r = 0,
+        g = 0,
+        b = 0;
+      if (hex.length === 3) {
+        r = parseInt(hex[0] + hex[0], 16);
+        g = parseInt(hex[1] + hex[1], 16);
+        b = parseInt(hex[2] + hex[2], 16);
+      } else if (hex.length === 6) {
+        r = parseInt(hex.substring(0, 2), 16);
+        g = parseInt(hex.substring(2, 4), 16);
+        b = parseInt(hex.substring(4, 6), 16);
+      } else {
+        return `rgba(128, 128, 128, ${alpha})`;
+      }
+      if (isNaN(r) || isNaN(g) || isNaN(b)) return `rgba(128,128,128,${alpha})`;
+      return `rgba(${r},${g},${b},${alpha})`;
+    }
+
+    function initD3() {
+      const fcCont = document.getElementById('flowchartContainer');
+      d3.select(fcCont).select('svg').remove();
+      const cW = fcCont.clientWidth,
+        cH = fcCont.clientHeight,
+        vW = Math.max(cW * 1.5, 2000),
+        vH = Math.max(cH * 1.5, 1500);
+      svg = d3
+        .select(fcCont)
+        .append('svg')
+        .attr('id', 'flowchart')
+        .attr('width', '100%')
+        .attr('height', '100%')
+        .attr('viewBox', `0 0 ${vW} ${vH}`)
+        .attr('preserveAspectRatio', 'xMidYMid meet');
+      mainZoomGroup = svg.append('g');
+
+      const zm = d3.zoom().on('zoom', (ev) =>
+        mainZoomGroup.attr('transform', ev.transform)
+      );
+      svg.call(zm).on('dblclick.zoom', null);
+      mainZoomGroup.append('defs');
+
+      linkGroup = mainZoomGroup.append('g').attr('class', 'links');
+      nodeGroup = mainZoomGroup.append('g').attr('class', 'nodes');
+
+      const scaledNodeDimension = BASE_NODE_DIMENSION * currentNodeSizeFactor;
+      simulation = d3
+        .forceSimulation()
+        .force(
+          'charge',
+          d3.forceManyBody().strength(-1800 * (scaledNodeDimension / 160))
+        )
+        .force(
+          'collide',
+          d3.forceCollide().radius((scaledNodeDimension * 0.55) + 25).strength(0.9)
+        )
+        .force('center', d3.forceCenter(vW / 2, vH / 2));
+
+      window.addEventListener('resize', () => {
+        const nCW = fcCont.clientWidth,
+          nCH = fcCont.clientHeight,
+          nV_W = Math.max(nCW * 1.5, vW),
+          nV_H = Math.max(nCH * 1.5, vH);
+        simulation
+          .force('center', d3.forceCenter(nV_W / 2, nV_H / 2))
+          .alpha(0.3)
+          .restart();
+      });
+    }
+    
+    function addTaskRow(t) {
+      const tb = document.querySelector('#taskTable tbody'),
+        tr = document.createElement('tr');
+      tr.addEventListener('click', function () {
+        document
+          .querySelectorAll('#taskTable tbody tr')
+          .forEach((r) => r.classList.remove('selectedTaskRow'));
+        this.classList.add('selectedTaskRow');
+      });
+      const tdC = document.createElement('td'),
+        cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.checked = t && t.completed ? true : false;
+      tdC.appendChild(cb);
+      const tdT = document.createElement('td'),
+        ti = document.createElement('textarea');
+      ti.classList.add('task-detail-textarea');
+      ti.value = t && t.task ? t.task : '';
+      ti.rows = 1;
+      
+      ti.addEventListener('input', function () {
+        this.style.height = 'auto';
+        this.style.height = this.scrollHeight + 'px';
+      });
+      
+      ti.addEventListener('dblclick', function (e) {
+        e.stopPropagation();
+        tr.classList.add('selectedTaskRow');
+        showTaskPopup(this.value);
+      });
+
+      let pT;
+      ti.addEventListener('touchstart', function (e) {
+        e.stopPropagation();
+        pT = window.setTimeout(() => {
+          tr.classList.add('selectedTaskRow');
+          showTaskPopup(this.value);
+        }, 800);
+      });
+      ti.addEventListener('touchend', function () {
+        clearTimeout(pT);
+      });
+      ti.addEventListener('touchmove', function () {
+        clearTimeout(pT);
+      });
+      tdT.appendChild(ti);
+      tr.appendChild(tdC);
+      tr.appendChild(tdT);
+      tb.appendChild(tr);
+      ti.dispatchEvent(new Event('input'));
+    }
+
+    function populateTaskTable(str) {
+      const tb = document.querySelector('#taskTable tbody');
+      tb.innerHTML = '';
+      let arr = [];
+      if (str && typeof str === 'string') {
+        try {
+          arr = JSON.parse(str);
+          if (!Array.isArray(arr)) arr = str.trim() ? [{ completed: false, task: str }] : [];
+        } catch (e) {
+          arr = str.trim() ? [{ completed: false, task: str }] : [];
+        }
+      } else if (Array.isArray(str)) arr = str;
+
+      if (arr.length > 0) arr.forEach((t) => addTaskRow(t));
+      else addTaskRow({});
+    }
+
+    function showTaskPopup(txt) {
+      document.getElementById('taskFullText').textContent = txt;
+      document.getElementById('taskTextPopup').style.display = 'block';
+    }
+
+    function updateProjectDescButton() {
+      const btn = document.getElementById('projectDescBtn');
+      if (!btn) return;
+
+      const pd = data.projectDescription || {};
+      const hasDesc = pd.summary && pd.summary.trim().length > 0;
+      btn.style.display = hasDesc ? 'inline-flex' : 'none';
+    }
+
+    function nodeClick(ev, d) {
+      ev.stopPropagation();
+      selectedNode = d;
+      const g = (id) => document.getElementById(id);
+      g('taskName').value = d.name || '';
+      g('responsible').value = d.responsible || '';
+      g('status').value = d.status || 'Not Started';
+      g('deadline').value = d.deadline || '';
+      g('priority').value = d.priority || 'Normal';
+      populateTaskTable(d.actionDescription || '');
+      g('nodeColor').value = d.color || '';
+      document.querySelectorAll('.color-swatch').forEach((s) =>
+        s.classList.remove('selected-swatch')
+      );
+      if (d.color) {
+        const sS = document.querySelector(`.color-swatch[data-color='${d.color}']`);
+        if (sS) sS.classList.add('selected-swatch');
+      }
+      g('modal').style.display = 'block';
+    }
+
+    function linkClickHandler(event, d) {
+        event.stopPropagation();
+        selectedLink = d;
+        linkGroup.selectAll('line.link').classed('selected', l => l === selectedLink);
+        document.getElementById('deleteLinkModal').style.display = 'block';
+    }
+    
+    function openColorLegendModal() {
+        const legendEntriesContainer = document.getElementById('color-legend-entries');
+        legendEntriesContainer.innerHTML = '';
+        const uniqueColors = [...new Set(data.nodes.map(n => n.color).filter(c => c))];
+        const nodeFillOpacity = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--node-fill-opacity').trim() || '0.55');
+
+        uniqueColors.forEach(color => {
+            const entryDiv = document.createElement('div');
+            entryDiv.className = 'legend-entry';
+            
+            const swatch = document.createElement('div');
+            swatch.className = 'legend-color-swatch';
+            swatch.style.backgroundColor = hexToRgba(color, nodeFillOpacity);
+            
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.placeholder = `Description for ${color}`;
+            input.dataset.color = color;
+            input.value = data.colorLegend[color] || '';
+            
+            entryDiv.appendChild(swatch);
+            entryDiv.appendChild(input);
+            legendEntriesContainer.appendChild(entryDiv);
+        });
+        
+        document.getElementById('colorLegendModal').style.display = 'block';
+    }
+    
+    function saveColorLegend(event) {
+        event.preventDefault();
+        const inputs = document.querySelectorAll('#color-legend-entries input');
+        inputs.forEach(input => {
+            const color = input.dataset.color;
+            const description = input.value.trim();
+            if (description) {
+                data.colorLegend[color] = description;
+            } else {
+                delete data.colorLegend[color];
+            }
+        });
+        document.getElementById('colorLegendModal').style.display = 'none';
+        updateLegendDisplay();
+    }
+    
+    function updateLegendDisplay() {
+        const displayContainer = document.getElementById('color-legend-display');
+        displayContainer.innerHTML = '';
+        
+        const legendItems = Object.entries(data.colorLegend);
+        const nodeFillOpacity = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--node-fill-opacity').trim() || '0.55');
+
+        if (legendItems.length > 0) {
+            legendItems.forEach(([color, description]) => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'legend-display-item';
+                
+                const swatch = document.createElement('div');
+                swatch.className = 'legend-display-color';
+                swatch.style.backgroundColor = hexToRgba(color, nodeFillOpacity);
+                
+                const text = document.createElement('span');
+                text.textContent = description;
+                
+                itemDiv.appendChild(swatch);
+                itemDiv.appendChild(text);
+                displayContainer.appendChild(itemDiv);
+            });
+            displayContainer.classList.add('visible');
+        } else {
+            displayContainer.classList.remove('visible');
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      try {
+        initD3();
+        const g = (id) => document.getElementById(id);
+
+        const tooltip = document.getElementById('tooltip');
+        if (tooltip) {
+          const tooltipButtons = document.querySelectorAll('nav button[data-tooltip-text]');
+          tooltipButtons.forEach(button => {
+            button.addEventListener('mouseenter', () => {
+              const text = button.dataset.tooltipText;
+              if (text) {
+                tooltip.textContent = text;
+                const rect = button.getBoundingClientRect();
+                const top = rect.bottom + 8;
+                const left = rect.left + rect.width / 2;
+                tooltip.style.top = `${top}px`;
+                tooltip.style.left = `${left}px`;
+                tooltip.classList.add('visible');
+              }
+            });
+            button.addEventListener('mouseleave', () => {
+              tooltip.classList.remove('visible');
+            });
+          });
+        }
+        
+        document.querySelectorAll('.color-panel .color-swatch').forEach(swatch => {
+            const color = swatch.dataset.color;
+            const nodeFillOpacity = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--node-fill-opacity').trim() || '0.55');
+            if (color) {
+                swatch.style.backgroundColor = hexToRgba(color, nodeFillOpacity);
+            }
+        });
+
+        if (g('aiAssistantBtn')) g('aiAssistantBtn').onclick = openAIAssistant;
+        if (g('nodeSizeIncreaseBtn')) g('nodeSizeIncreaseBtn').onclick = () => {
+          if (currentNodeSizeFactor < MAX_NODE_SIZE_FACTOR) {
+            currentNodeSizeFactor = parseFloat((currentNodeSizeFactor + NODE_SIZE_STEP).toFixed(2));
+            updateNodeSizes();
+          }
+        };
+        if (g('nodeSizeDecreaseBtn')) g('nodeSizeDecreaseBtn').onclick = () => {
+          if (currentNodeSizeFactor > MIN_NODE_SIZE_FACTOR) {
+            currentNodeSizeFactor = parseFloat((currentNodeSizeFactor - NODE_SIZE_STEP).toFixed(2));
+            updateNodeSizes();
+          }
+        };
+        document.querySelectorAll('.color-panel .color-swatch').forEach((s) =>
+          s.addEventListener('click', () => {
+            document.querySelectorAll('.color-panel .color-swatch').forEach((x) => x.classList.remove('selected-swatch'));
+            s.classList.add('selected-swatch');
+            g('nodeColor').value = s.dataset.color;
+          })
+        );
+        
+        g('colorLegendBtn').onclick = openColorLegendModal;
+        g('closeColorLegendModal').onclick = () => g('colorLegendModal').style.display = 'none';
+        g('colorLegendForm').onsubmit = saveColorLegend;
+        
+        const addConnBtn = document.getElementById('addConnectorBtn');
+        const svgEl = document.getElementById('flowchart');
+        if (addConnBtn && svgEl) {
+            addConnBtn.addEventListener('click', () => {
+              connectorMode = !connectorMode;
+              connectorStartNode = null;
+              svgEl.style.cursor = connectorMode ? 'crosshair' : 'default';
+              addConnBtn.classList.toggle('active', connectorMode);
+            });
+        }
+
+        if (g('addNodeBtn')) g('addNodeBtn').onclick = (e) => {
+          e.preventDefault();
+          const nN = createNode(selectedNode);
+          if (nN) {
+            selectedNode = nN;
+            nodeClick({ stopPropagation: () => {} }, nN);
+          }
+        };
+
+        const projectDescBtn = g('projectDescBtn');
+        const projectDescModal = g('projectDescModal');
+        const projectSummaryEl = g('projectSummary');
+        const projectGeneratedDateEl = g('projectGeneratedDate');
+        updateProjectDescButton();
+        if (projectDescBtn && projectDescModal && projectSummaryEl && projectGeneratedDateEl) {
+          projectDescBtn.onclick = () => {
+            const pd = data.projectDescription || {};
+            if (pd.summary && pd.generatedDate) {
+              projectSummaryEl.textContent = pd.summary;
+              projectGeneratedDateEl.textContent = `Generated: ${pd.generatedDate}`;
+            } else {
+              projectSummaryEl.textContent = 'No project description available.';
+              projectGeneratedDateEl.textContent = '';
+            }
+            projectDescModal.style.display = 'block';
+          };
+        }
+        
+        document.querySelectorAll('.modal .close-button').forEach((b) => {
+            b.onclick = (e) => {
+              e.stopPropagation();
+              b.closest('.modal').style.display = 'none';
+            };
+        });
+
+        window.onclick = (e) => {
+          if (e.target.classList.contains('modal')) e.target.style.display = 'none';
+        };
+
+        if (g('taskForm'))
+          g('taskForm').onsubmit = (e) => {
+            e.preventDefault();
+            if (selectedNode) {
+              let tsks = [];
+              document.querySelectorAll('#taskTable tbody tr').forEach((r) => {
+                let chk = r.querySelector('input[type="checkbox"]'),
+                  txt = r.querySelector('textarea.task-detail-textarea');
+                if (txt && txt.value.trim() !== '')
+                  tsks.push({ completed: chk.checked, task: txt.value.trim() });
+              });
+              Object.assign(selectedNode, {
+                name: g('taskName').value,
+                responsible: g('responsible').value,
+                status: g('status').value,
+                deadline: g('deadline').value,
+                priority: g('priority').value,
+                actionDescription: JSON.stringify(tsks),
+                color: g('nodeColor').value || null,
+              });
+              selectedNode.fx = selectedNode.x;
+              selectedNode.fy = selectedNode.y;
+              update();
+            }
+            g('modal').style.display = 'none';
+          };
+        
+        const deleteLinkModal = g('deleteLinkModal');
+        const confirmDeleteLinkBtn = g('confirmDeleteLinkBtn');
+        const cancelDeleteLinkBtn = g('cancelDeleteLinkBtn');
+
+        const closeDeleteLinkModal = () => {
+            deleteLinkModal.style.display = 'none';
+            linkGroup.selectAll('line.link').classed('selected', false);
+            selectedLink = null;
+        }
+
+        confirmDeleteLinkBtn.onclick = () => {
+            if (selectedLink) {
+                data.links = data.links.filter(l => l !== selectedLink);
+                update();
+            }
+            closeDeleteLinkModal();
+        };
+        cancelDeleteLinkBtn.onclick = closeDeleteLinkModal;
+
+
+        if (g('addTaskRowBtn'))
+          g('addTaskRowBtn').addEventListener('click', () => addTaskRow({}));
+        if (g('deleteTaskBtn'))
+          g('deleteTaskBtn').addEventListener('click', () => {
+            let sR = document.querySelector('#taskTable tbody tr.selectedTaskRow');
+            if (sR) sR.remove();
+            g('taskTextPopup').style.display = 'none';
+          });
+        if (g('deleteNodeBtn'))
+          g('deleteNodeBtn').addEventListener('click', () => {
+            if (selectedNode && confirm('Delete node? This will also remove any connectors attached to it.')) {
+              const selectedId = selectedNode.id;
+              data.nodes = data.nodes.filter((n) => n.id !== selectedId);
+              data.links = data.links.filter((l) => (l.source.id || l.source) !== selectedId && (l.target.id || l.target) !== selectedId);
+              selectedNode = null;
+              update();
+              g('modal').style.display = 'none';
+            }
+          });
+        if (g('flowchartNameInput'))
+          g('flowchartNameInput').addEventListener('input', function () {
+            data.flowchartName = this.value || 'Untitled';
+          });
+        
+        // Load the hardcoded demo data on start
+        document.getElementById('flowchartNameInput').value = data.flowchartName;
+        update();
+      } catch (dE) {
+        console.error('DOMContentLoaded error:', dE);
+      }
+    });
+
+    function createNode(pN) {
+      const nId = `node-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
+      let iX, iY;
+      const vB = svg.attr('viewBox').split(' '),
+        vW = parseFloat(vB[2]),
+        vH = parseFloat(vB[3]),
+        cSD = BASE_NODE_DIMENSION * currentNodeSizeFactor;
+      if (pN && typeof pN.x === 'number' && typeof pN.y === 'number') {
+        iX = pN.x + (Math.random() * 100 - 50);
+        iY = pN.y + cSD * 0.9 + (Math.random() * 20 - 10);
+      } else {
+        iX = vW / 2 + (Math.random() * 200 - 100);
+        iY = vH / 3 + (Math.random() * 100 - 50);
+      }
+      iX = Math.max(cSD / 2, Math.min(iX, vW - cSD / 2));
+      iY = Math.max(cSD / 2, Math.min(iY, vH - cSD / 2));
+      const nN = {
+        id: nId,
+        name: 'New Task Node',
+        status: 'Not Started',
+        responsible: '',
+        deadline: '',
+        priority: 'Normal',
+        actionDescription: '[]',
+        color: null,
+        x: iX,
+        y: iY,
+        fx: iX,
+        fy: iY,
+      };
+      data.nodes.push(nN);
+      update();
+      return nN;
+    }
+
+    function updateNodeSizes() {
+      if (!simulation) return;
+      const sD = BASE_NODE_DIMENSION * currentNodeSizeFactor;
+      simulation.force('collide').radius((sD * 0.55) + 25);
+      simulation.force('charge').strength(-1800 * (sD / 160));
+      update();
+      simulation.alpha(0.3).restart();
+    }
+    
+    function update() {
+        if (!svg || !simulation) {
+            console.error('D3 not initialized for update');
+            return;
+        }
+        
+        updateLegendDisplay();
+        updateProjectDescButton();
+
+        const currentScaledDimension = BASE_NODE_DIMENSION * currentNodeSizeFactor;
+        const baseNodeNameFontSizePx = 14;
+        const basePillFontSizePx = 12;
+
+        let link = linkGroup.selectAll('line.link').data(data.links, d => `${d.source.id || d.source}-${d.target.id || d.target}`);
+        link.exit().remove();
+        link = link.enter()
+            .append('line')
+            .attr('class', 'link')
+            .attr('stroke', 'var(--link-color)')
+            .attr('stroke-width', 2.5)
+            .on('click', linkClickHandler)
+            .merge(link);
+
+        let node = nodeGroup.selectAll('g.node-group').data(data.nodes, d => d.id);
+        node.exit().remove();
+        
+        const nodeEnter = node.enter()
+            .append('g')
+            .attr('class', 'node-group')
+            .call(d3.drag().on('start', dragStart).on('drag', dragging).on('end', dragEnd));
+
+        nodeEnter.append('foreignObject')
+            .attr('class', 'flowchart-node-html-wrapper')
+            .append('xhtml:div')
+            .attr('class', 'flowchart-node-html');
+        
+        node = nodeEnter.merge(node);
+        
+        node.on('click', (event, d) => {
+            event.stopPropagation();
+            if (connectorMode) {
+                if (!connectorStartNode) {
+                    connectorStartNode = d;
+                } else if (d.id !== connectorStartNode.id) {
+                    const linkExists = data.links.some(l =>
+                        ((l.source.id || l.source) === connectorStartNode.id && (l.target.id || l.target) === d.id) ||
+                        ((l.source.id || l.source) === d.id && (l.target.id || l.target) === connectorStartNode.id)
+                    );
+                    if (!linkExists) {
+                        data.links.push({ source: connectorStartNode.id, target: d.id });
+                        update();
+                    }
+                    connectorMode = false;
+                    connectorStartNode = null;
+                    document.getElementById('flowchart').style.cursor = 'default';
+                    document.getElementById('addConnectorBtn').classList.remove('active');
+                }
+            } else {
+                nodeClick(event, d);
+            }
+        });
+
+        node.select('foreignObject')
+            .attr('width', currentScaledDimension)
+            .attr('height', currentScaledDimension)
+            .attr('x', -currentScaledDimension / 2)
+            .attr('y', -currentScaledDimension / 2);
+
+        node.select('.flowchart-node-html').each(function(d) {
+            const nodeOuterDiv = d3.select(this);
+            const nodeFillOpacity = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--node-fill-opacity').trim() || '0.7');
+            const baseColorHex = d.color ? d.color : getStatusColor(d.status);
+            nodeOuterDiv.style('background-color', hexToRgba(baseColorHex, nodeFillOpacity));
+
+            let prDiv = nodeOuterDiv.select('.priority-indicator');
+            if (prDiv.empty()) {
+                prDiv = nodeOuterDiv.append('div').attr('class', 'priority-indicator');
+            }
+            let indicatorHtml = '⚪️ ⚪️ ⚪️';
+            if (d.priority === 'Low') indicatorHtml = '🔴 ⚪️ ⚪️';
+            else if (d.priority === 'Normal') indicatorHtml = '🔴 🔴 ⚪️';
+            else if (d.priority === 'High') indicatorHtml = '🔴 🔴 🔴';
+            prDiv.html(indicatorHtml);
+
+            let pillDiv = nodeOuterDiv.select('.task-count-pill-html');
+            if (pillDiv.empty()) pillDiv = nodeOuterDiv.append('div').attr('class', 'task-count-pill-html');
+            
+            let nameDiv = nodeOuterDiv.select('.node-name-html');
+            if (nameDiv.empty()) nameDiv = nodeOuterDiv.append('div').attr('class', 'node-name-html');
+
+            nameDiv.text(d.name || '').style('font-size', `${Math.max(10, baseNodeNameFontSizePx * currentNodeSizeFactor)}px`);
+
+            let tasks = [];
+            try {
+                if (d.actionDescription) tasks = JSON.parse(d.actionDescription);
+            } catch (e) { /* Gracefully handle invalid JSON */ }
+            
+            const compC = tasks.filter((t) => t.completed).length;
+            const totC = tasks.length;
+            if (totC > 0) {
+                pillDiv.text(`✓ ${compC}/${totC}`).style('display', 'block').style('font-size', `${Math.max(9, basePillFontSizePx * currentNodeSizeFactor)}px`);
+            } else {
+                pillDiv.style('display', 'none');
+            }
+        });
+
+        simulation.nodes(data.nodes);
+        if (data.links) {
+            const linkForce = d3.forceLink(data.links).id(d => d.id).distance(250).strength(0.05);
+            simulation.force('link', linkForce);
+        }
+
+        simulation.on('tick', () => {
+            node.attr('transform', d => `translate(${d.x},${d.y})`);
+            
+            link.each(function(d) {
+                if (d.source && d.target && typeof d.source.x === 'number' && typeof d.target.x === 'number') {
+                    const sourcePoint = getIntersectionPoint(d.source, d.target, currentScaledDimension, currentScaledDimension);
+                    const targetPoint = getIntersectionPoint(d.target, d.source, currentScaledDimension, currentScaledDimension);
+
+                    d3.select(this)
+                        .attr('x1', sourcePoint.x)
+                        .attr('y1', sourcePoint.y)
+                        .attr('x2', targetPoint.x)
+                        .attr('y2', targetPoint.y);
+                }
+            });
+        });
+
+        simulation.alpha(1).restart();
+    }
+
+    function getStatusColor(s) {
+      switch (s) {
+        case 'Not Started':
+          return '#e74c3c';
+        case 'In Progress':
+          return '#f1c40f';
+        case 'Completed':
+          return '#2ecc71';
+        default:
+          return '#3498db';
+      }
+    }
+
+    function dragStart(ev, d) {
+      if (!ev.active) simulation.alphaTarget(0.3).restart();
+      d.fx = d.x;
+      d.fy = d.y;
+    }
+
+    function dragging(ev, d) {
+      d.fx = ev.x;
+      d.fy = ev.y;
+    }
+
+    function dragEnd(ev, d) {
+      if (!ev.active) simulation.alphaTarget(0);
+    }
+
+    function getIntersectionPoint(sourceNode, targetNode, width, height) {
+        const sx = sourceNode.x;
+        const sy = sourceNode.y;
+        const tx = targetNode.x;
+        const ty = targetNode.y;
+        
+        const dx = tx - sx;
+        const dy = ty - sy;
+        
+        if (dx === 0 && dy === 0) {
+            return { x: sx, y: sy };
+        }
+
+        const halfWidth = width / 2;
+        const halfHeight = height / 2;
+        
+        const slope = dy / dx;
+        const rectSlope = halfHeight / halfWidth;
+
+        let ix, iy;
+
+        if (Math.abs(slope) < rectSlope) {
+            if (dx > 0) {
+                ix = sx + halfWidth;
+                iy = sy + halfWidth * slope;
+            } else {
+                ix = sx - halfWidth;
+                iy = sy - halfWidth * slope;
+            }
+        } else {
+            if (dy > 0) {
+                iy = sy + halfHeight;
+                ix = sx + halfHeight / slope;
+            } else {
+                iy = sy - halfHeight;
+                ix = sx - halfHeight / slope;
+            }
+        }
+
+        return { x: ix, y: iy };
+    }
+  </script>
+</body>
+</html>
