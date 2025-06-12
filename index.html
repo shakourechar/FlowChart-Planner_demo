@@ -756,7 +756,6 @@
       </button>
       
       <!-- Regular buttons for demo functionality -->
-      <!-- FIX: Removed title attribute from all buttons to prevent double tooltips -->
       <button
         id="nodeSizeIncreaseBtn"
         data-tooltip-text="Increase Node Size"
@@ -776,6 +775,14 @@
         data-tooltip-text="AI Assistant"
       >
         <i class="fas fa-lightbulb"></i>
+      </button>
+
+      <!-- FIX: Added User Guide button back to the demo -->
+      <button
+        id="userGuideBtn"
+        data-tooltip-text="User Guide"
+      >
+        <i class="fas fa-book-open"></i>
       </button>
 
       <button
@@ -922,6 +929,36 @@
         style="white-space: pre-wrap; max-height: 60vh; overflow-y: auto;"
       ></p>
       <button id="deleteTaskBtn" class="modal-btn danger">Delete Task</button>
+    </div>
+  </div>
+    
+  <!-- FIX: Added User Guide Modal back to the demo -->
+  <div id="userGuideModal" class="modal">
+    <div class="modal-content">
+      <span class="close-button" id="closeUserGuideModal">×</span>
+      <h2>📘 FlowChart Manager – User Guide</h2>
+
+      <h3>🛠️ Interface Controls</h3>
+      <ul>
+        <li><b>+/- Node Size </b> – Resize task nodes for better visibility.</li>
+        <li><b>🔗 Add Connector</b> - Click to enter 'Connector Mode,' then click two nodes to link them.</li>
+        <li><b>⛓️‍💥 Delete a Connector</b> - Click directly on a connector line to bring up a confirmation to delete it.</li>
+        <li><b>🎨 Color Legend</b> – Define what each color represents in your flowchart.</li>
+        <li>ℹ︎ Use your mouse to drag entire Canvas.</li>
+        <li>Use mouse wheel to further enlarge/shrink nodes.</li>
+      </ul>
+
+      <h3>🧩 Working with Tasks</h3>
+      <ul>
+        <li>Click any node to view or edit its details.</li>
+        <li>To delete a specific sub-task, simply double-click on its text field within the node details popup.</li>
+        <li>Completing fields like Responsible, Deadline, and Priority helps align your workflow, track progress, and maintain clarity.</li>
+      </ul>
+
+      <h3><i class="fas fa-lightbulb"></i> GPT FlowChart Assistant</h3>
+        <ul>
+            <li>Click the 💡 button to open our FlowChart AI Assistant. </li>
+        </ul>
     </div>
   </div>
 
@@ -1404,6 +1441,15 @@
           })
         );
         
+        // FIX: Add event listeners for the re-added User Guide button
+        const userGuideBtn = g('userGuideBtn');
+        const userGuideModal = g('userGuideModal');
+        const closeUserGuideModalBtn = g('closeUserGuideModal');
+        if (userGuideBtn && userGuideModal && closeUserGuideModalBtn) {
+          userGuideBtn.onclick = () => (userGuideModal.style.display = 'block');
+          closeUserGuideModalBtn.onclick = () => (userGuideModal.style.display = 'none');
+        }
+
         g('colorLegendBtn').onclick = openColorLegendModal;
         g('closeColorLegendModal').onclick = () => g('colorLegendModal').style.display = 'none';
         g('colorLegendForm').onsubmit = saveColorLegend;
